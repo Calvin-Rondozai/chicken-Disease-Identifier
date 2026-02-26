@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>History — HealthyHen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="bg-noise"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-logo">
+        <span class="logo-icon">🐔</span>
+        <span class="logo-text">HealthyHen</span>
+      </div>
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link">Diagnose</a>
+        <a href="{{ url_for('about') }}" class="nav-link active">History</a>
+      </div>
+      <div class="nav-badge">.</div>
+    </nav>
+
+    <main class="main-content">
+      <section class="hero" style="margin-bottom: 2rem">
+        <div class="hero-tag">Prediction Records</div>
+        <h1 class="hero-title" style="font-size: clamp(2rem, 5vw, 3.5rem)">
+          Analysis <span class="accent">History</span>
+        </h1>
+        <p class="hero-sub">
+          Review all past diagnoses, confidence scores, and Grad-CAM++
+          visualizations.
+        </p>
+      </section>
+
+      <!-- Stats Bar -->
+      <div class="stats-bar" id="statsBar" style="display: none">
+        <div class="stat-item">
+          <div class="stat-num" id="statTotal">0</div>
+          <div class="stat-label">Total Analyses</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num healthy" id="statHealthy">0</div>
+          <div class="stat-label">Healthy</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num sick" id="statSick">0</div>
+          <div class="stat-label">Diseased</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num" id="statAvgConf">—</div>
+          <div class="stat-label">Avg. Confidence</div>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="filter-bar" id="filterBar" style="display: none">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="Healthy">🟢 Healthy</button>
+        <button class="filter-btn" data-filter="Coccidiosis">
+          🟠 Coccidiosis
+        </button>
+        <button class="filter-btn" data-filter="Newcastle Disease">
+          🔴 Newcastle
+        </button>
+        <button class="filter-btn" data-filter="Salmonella">
+          🟡 Salmonella
+        </button>
+        <button class="clear-all-btn" id="clearAllBtn">Clear All</button>
+      </div>
+
+      <!-- History Grid -->
+      <div class="history-grid" id="historyGrid"></div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none">
+        <div class="empty-icon">🔍</div>
+        <h3>No analyses yet</h3>
+        <p>Upload your first fecal image to get started.</p>
+        <a
+          href="{{ url_for('index') }}"
+          class="analyze-btn"
+          style="text-decoration: none; display: inline-flex"
+          >Start Diagnosing</a
+        >
+      </div>
+
+      <!-- Loading State -->
+      <div class="loading-state" id="loadingState">
+        <div class="gcam-spinner"></div>
+        <span>Loading history…</span>
+      </div>
+    </main>
+
+    <!-- Grad-CAM Modal -->
+    <div class="modal-overlay" id="gcamModal" style="display: none">
+      <div class="modal-box">
+        <button class="modal-close" id="gcamModalClose">✕</button>
+        <div class="modal-header">
+          <span class="modal-title" id="gcamModalTitle"
+            >Grad-CAM++ Analysis</span
+          >
+          <span class="gradcam-badge">XAI</span>
+        </div>
+        <div class="modal-images">
+          <div class="modal-img-wrap">
+            <div class="modal-img-label">Original Image</div>
+            <img id="gcamOriginal" src="" alt="" class="modal-img" />
+          </div>
+          <div class="modal-img-wrap">
+            <div class="modal-img-label">Grad-CAM++ Heatmap</div>
+            <div class="modal-gcam-loading" id="gcamSpinner">
+              <div class="gcam-spinner"></div>
+              <span>Generating saliency map…</span>
+            </div>
+            <img
+              id="gcamHeatmap"
+              src=""
+              alt=""
+              class="modal-img"
+              style="display: none"
+            />
+          </div>
+        </div>
+        <p class="gradcam-note" style="margin-top: 0">
+          Highlighted regions show which pixels most influenced the model's
+          prediction.
+        </p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span
+        >HealthyHen · Accuracy ·
+        <a href="" target="_blank">Keith @2026</a></span
+      >
+      <span>~90%+ Val Accuracy</span>
+    </footer>
+
+    <!-- Chatbot FAB -->
+    <button class="chat-fab" id="chatFab" title="Ask about poultry diseases">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+        />
+      </svg>
+      <span class="fab-badge">AI</span>
+    </button>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-avatar">🐔</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">HenBot</div>
+          <div class="chat-header-status">Online · Poultry Disease Expert</div>
+        </div>
+        <button class="chat-close" id="chatClose" title="Close">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div style="padding: 0 1rem">
+        <div class="chat-typing" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+      <div class="chat-quick-btns" id="quickBtns">
+        <button class="quick-btn" data-q="What is Coccidiosis?">
+          🔴 Coccidiosis
+        </button>
+        <button class="quick-btn" data-q="Tell me about Newcastle Disease">
+          🟡 Newcastle
+        </button>
+        <button class="quick-btn" data-q="What is Salmonella in chickens?">
+          🟠 Salmonella
+        </button>
+        <button class="quick-btn" data-q="How does a healthy hen look?">
+          🟢 Healthy Hen
+        </button>
+        <button class="quick-btn" data-q="How can I prevent poultry diseases?">
+          💊 Prevention
+        </button>
+      </div>
+      <div class="chat-input-row">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          rows="1"
+          placeholder="Ask about any poultry disease…"
+        ></textarea>
+        <button class="chat-send" id="chatSend" title="Send">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script>
+      /* ── History Page JS ────────────────────────────────── */
+      const CLASS_COLORS = {
+        Coccidiosis: "#FF6B35",
+        Healthy: "#2ECC71",
+        "Newcastle Disease": "#E74C3C",
+        Salmonella: "#F39C12",
+      };
+      const CLASS_ICONS = {
+        Coccidiosis: "🟠",
+        Healthy: "🟢",
+        "Newcastle Disease": "🔴",
+        Salmonella: "🟡",
+      };
+
+      const STORAGE_KEY = "healthyhen_history";
+      let allRecords = [];
+      let activeFilter = "all";
+
+      function loadHistory() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        } catch {
+          return [];
+        }
+      }
+      function saveHistory(r) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(r));
+      }
+
+      function renderStats(records) {
+        const bar = document.getElementById("statsBar");
+        if (!records.length) {
+          bar.style.display = "none";
+          return;
+        }
+        bar.style.display = "grid";
+        document.getElementById("statTotal").textContent = records.length;
+        const h = records.filter((r) => r.prediction === "Healthy").length;
+        document.getElementById("statHealthy").textContent = h;
+        document.getElementById("statSick").textContent = records.length - h;
+        const avg =
+          records.reduce((s, r) => s + r.confidence, 0) / records.length;
+        document.getElementById("statAvgConf").textContent =
+          avg.toFixed(1) + "%";
+      }
+
+      function renderCards(records) {
+        const grid = document.getElementById("historyGrid");
+        const empty = document.getElementById("emptyState");
+        const loading = document.getElementById("loadingState");
+        const filterB = document.getElementById("filterBar");
+        loading.style.display = "none";
+
+        const filtered =
+          activeFilter === "all"
+            ? records
+            : records.filter((r) => r.prediction === activeFilter);
+
+        if (!records.length) {
+          empty.style.display = "block";
+          filterB.style.display = "none";
+          grid.innerHTML = "";
+          return;
+        }
+        empty.style.display = "none";
+        filterB.style.display = "flex";
+
+        if (!filtered.length) {
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;display:block">
+        <div class="empty-icon">🔎</div><h3>No "${activeFilter}" results</h3>
+        <p>No predictions matched this filter.</p></div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered
+          .map((r, i) => {
+            const color = CLASS_COLORS[r.prediction] || "#888";
+            const icon = CLASS_ICONS[r.prediction] || "🔬";
+            const date = new Date(r.timestamp).toLocaleString();
+            const probs = r.probabilities || {};
+            const probBars = Object.entries(probs)
+              .sort((a, b) => b[1] - a[1])
+              .map(
+                ([name, pct]) => `
+        <div class="mini-bar-wrap">
+          <span class="mini-bar-name">${name}</span>
+          <div class="mini-bar-bg"><div class="mini-bar" style="width:${pct}%;background:${CLASS_COLORS[name] || "#888"}"></div></div>
+          <span class="mini-bar-pct">${typeof pct === "number" ? pct.toFixed(2) : pct}%</span>
+        </div>`,
+              )
+              .join("");
+
+            return `
+        <div class="history-card" style="animation-delay:${i * 0.05}s">
+          <img class="hcard-img" src="${r.imagePath}" alt="${r.prediction}"
+               onerror="this.style.display='none'"/>
+          <div class="hcard-body">
+            <div class="hcard-top">
+              <div class="hcard-pred" style="color:${color}">${icon} ${r.prediction}</div>
+              <div class="hcard-conf">${r.confidence.toFixed(2)}%</div>
+            </div>
+            <div class="hcard-date">${date}</div>
+            <div class="hcard-mini-bars">${probBars}</div>
+            <div class="hcard-actions">
+              <button class="hcard-btn view" onclick="openGradCam(${r.id})">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                Grad-CAM++
+              </button>
+              <button class="hcard-btn del" onclick="deleteRecord(${r.id})">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>`;
+          })
+          .join("");
+      }
+
+      function deleteRecord(id) {
+        allRecords = allRecords.filter((r) => r.id !== id);
+        saveHistory(allRecords);
+        renderStats(allRecords);
+        renderCards(allRecords);
+      }
+
+      function openGradCam(id) {
+        const r = allRecords.find((r) => r.id === id);
+        if (!r) return;
+        const modal = document.getElementById("gcamModal");
+        const title = document.getElementById("gcamModalTitle");
+        const original = document.getElementById("gcamOriginal");
+        const heatmap = document.getElementById("gcamHeatmap");
+        const spinner = document.getElementById("gcamSpinner");
+
+        title.textContent = `Grad-CAM++ — ${r.prediction} (${r.confidence.toFixed(2)}%)`;
+        original.src = r.imagePath;
+        heatmap.style.display = "none";
+        heatmap.src = "";
+        spinner.style.display = "flex";
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+
+        // Request Grad-CAM from Flask
+        if (r.imageFilename) {
+          fetch(`/gradcam?filename=${encodeURIComponent(r.imageFilename)}`)
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.gradcam) {
+                heatmap.src = "data:image/png;base64," + data.gradcam;
+                heatmap.style.display = "block";
+                spinner.style.display = "none";
+              } else {
+                spinner.innerHTML =
+                  '<span style="color:#ff4757">Grad-CAM not available for this image.</span>';
+              }
+            })
+            .catch(() => {
+              spinner.innerHTML =
+                '<span style="color:#ff4757">Failed to generate heatmap.</span>';
+            });
+        } else {
+          spinner.innerHTML =
+            '<span style="color:#6a8aaa;font-size:.8rem">Grad-CAM not available — image path missing.</span>';
+        }
+      }
+
+      // Modal close
+      document
+        .getElementById("gcamModalClose")
+        .addEventListener("click", () => {
+          document.getElementById("gcamModal").style.display = "none";
+          document.body.style.overflow = "";
+        });
+      document.getElementById("gcamModal").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("gcamModal")) {
+          document.getElementById("gcamModal").style.display = "none";
+          document.body.style.overflow = "";
+        }
+      });
+
+      // Filter buttons
+      document.querySelectorAll(".filter-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".filter-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeFilter = btn.dataset.filter;
+          renderCards(allRecords);
+        });
+      });
+
+      document.getElementById("clearAllBtn").addEventListener("click", () => {
+        if (confirm("Clear all prediction history? This cannot be undone.")) {
+          allRecords = [];
+          saveHistory([]);
+          renderStats([]);
+          renderCards([]);
+        }
+      });
+
+      // Init
+      allRecords = loadHistory();
+      renderStats(allRecords);
+      renderCards(allRecords);
+    </script>
+  </body>
+</html>

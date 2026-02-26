@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prediction — HealthyHen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="bg-noise"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-logo">
+        <span class="logo-icon">🐔</span>
+        <span class="logo-text">HealthyHen</span>
+      </div>
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+        <a href="{{ url_for('predict') }}" class="nav-link active"
+          >Prediction</a
+        >
+        <a href="{{ url_for('about') }}" class="nav-link">About</a>
+      </div>
+      <div class="nav-badge">.</div>
+    </nav>
+
+    <main class="main-content">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-tag">AI-Powered Poultry Health</div>
+        <h1 class="hero-title">
+          Detect. Diagnose.<br />
+          <span class="accent">Protect.</span>
+        </h1>
+        <p class="hero-sub">
+          Upload a fecal image and our neural network instantly classifies it
+          into Coccidiosis, Newcastle Disease, Salmonella, or Healthy.
+        </p>
+      </section>
+
+      <!-- Predict Layout -->
+      <section class="predict-layout">
+        <!-- Upload Form -->
+        <div class="upload-card">
+          <div class="upload-inner">
+            <div class="upload-icon-wrap">
+              <div class="upload-icon">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="upload-title">Upload Image for Prediction</h3>
+            <p class="upload-sub">
+              Upload a chicken fecal image to predict its health status using
+              our machine learning model.
+            </p>
+
+            <form
+              method="POST"
+              action="{{ url_for('predict') }}"
+              enctype="multipart/form-data"
+              class="predict-form"
+            >
+              <label class="file-label" id="fileLabel">
+                <input
+                  type="file"
+                  name="file"
+                  accept="image/*"
+                  required
+                  id="fileInput"
+                  class="file-input-hidden"
+                  onchange="handleFileChange(this)"
+                />
+                <span class="file-label-text" id="fileLabelText"
+                  >📂 Choose Image…</span
+                >
+              </label>
+              <button
+                type="submit"
+                class="analyze-btn"
+                style="margin-top: 1rem; width: 100%; justify-content: center"
+              >
+                <span class="analyze-text">Predict Disease</span>
+              </button>
+            </form>
+
+            {% if error %}
+            <div class="error-banner">⚠️ {{ error }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="result-panel-wrap">
+          {% if prediction %}
+          <div class="results-grid single-result-grid">
+            <div class="result-card pred-card">
+              <div class="card-label">Diagnosis</div>
+              <div class="pred-badge">
+                <span>🔬</span>
+                <span style="color: var(--accent)">{{ prediction }}</span>
+              </div>
+              <div class="confidence-wrap">
+                <div class="conf-label">Confidence</div>
+                <div class="conf-value">{{ "%.2f"|format(confidence) }}%</div>
+                <div class="conf-bar-bg">
+                  <div
+                    class="conf-bar"
+                    style="width: {{ confidence }}%; background: var(--accent);"
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="result-card image-card">
+              <div class="card-label">Uploaded Image</div>
+              <img
+                src="{{ '/' + image_path.replace('\\', '/') }}"
+                alt="Uploaded Image"
+                class="result-image"
+              />
+            </div>
+          </div>
+          {% else %}
+          <div class="placeholder-card">
+            <img
+              src="{{ url_for('static', filename='image/chickenfamily.png') }}"
+              alt="Chicken"
+              class="placeholder-img"
+              onerror="this.style.opacity = '0.3'"
+            />
+            <p class="placeholder-text">
+              Your prediction results will appear here after uploading an image.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span
+        >HealthyHen · Accuracy ·
+        <a href="" target="_blank">Keith @2026</a></span
+      >
+      <span>~90%+ Val Accuracy</span>
+    </footer>
+
+    <!-- Chatbot FAB -->
+    <button class="chat-fab" id="chatFab" title="Ask about poultry diseases">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+        />
+      </svg>
+      <span class="fab-badge">AI</span>
+    </button>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-avatar">🐔</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">HenBot</div>
+          <div class="chat-header-status">Online · Poultry Disease Expert</div>
+        </div>
+        <button class="chat-close" id="chatClose" title="Close">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div style="padding: 0 1rem">
+        <div class="chat-typing" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+      <div class="chat-quick-btns" id="quickBtns">
+        <button class="quick-btn" data-q="What is Coccidiosis?">
+          🔴 Coccidiosis
+        </button>
+        <button class="quick-btn" data-q="Tell me about Newcastle Disease">
+          🟡 Newcastle
+        </button>
+        <button class="quick-btn" data-q="What is Salmonella in chickens?">
+          🟠 Salmonella
+        </button>
+        <button class="quick-btn" data-q="How does a healthy hen look?">
+          🟢 Healthy Hen
+        </button>
+        <button class="quick-btn" data-q="How can I prevent poultry diseases?">
+          💊 Prevention
+        </button>
+      </div>
+      <div class="chat-input-row">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          rows="1"
+          placeholder="Ask about any poultry disease…"
+        ></textarea>
+        <button class="chat-send" id="chatSend" title="Send">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+    <script>
+      function handleFileChange(input) {
+        const label = document.getElementById("fileLabelText");
+        if (input.files && input.files[0]) {
+          label.textContent = "✅ " + input.files[0].name;
+        }
+      }
+    </script>
+  </body>
+</html>

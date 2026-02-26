@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — HealthyHen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="bg-noise"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-logo">
+        <span class="logo-icon">🐔</span>
+        <span class="logo-text">HealthyHen</span>
+      </div>
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link">Home</a>
+        <a href="{{ url_for('predict') }}" class="nav-link">Prediction</a>
+        <a href="{{ url_for('about') }}" class="nav-link">About</a>
+      </div>
+      <div class="nav-badge">.</div>
+    </nav>
+
+    <main class="main-content">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-tag">Monitoring &amp; Analytics</div>
+        <h1 class="hero-title">Flock <span class="accent">Dashboard</span></h1>
+        <p class="hero-sub">
+          An overview of chicken health monitoring and prediction history. Full
+          analytics and reporting coming soon.
+        </p>
+      </section>
+
+      <!-- Under Construction Notice -->
+      <div class="dev-notice">
+        <div class="dev-notice-icon">🚧</div>
+        <div class="dev-notice-body">
+          <div class="dev-notice-title">Under Development</div>
+          <div class="dev-notice-msg">
+            Full dashboard features — charts, history, and analytics — are
+            actively being built. Check back soon!
+          </div>
+        </div>
+      </div>
+
+      <!-- Placeholder Stats -->
+      <div class="stats-bar" style="display: grid; margin-bottom: 2rem">
+        <div class="stat-item">
+          <div class="stat-num">—</div>
+          <div class="stat-label">Total Analyses</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num healthy">—</div>
+          <div class="stat-label">Healthy</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num sick">—</div>
+          <div class="stat-label">Diseased</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">—%</div>
+          <div class="stat-label">Avg. Confidence</div>
+        </div>
+      </div>
+
+      <!-- Dashboard Preview Cards -->
+      <div class="dashboard-grid">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="card-label">Prediction History</div>
+            <span class="dash-badge dash-badge--coming">Coming Soon</span>
+          </div>
+          <div class="dash-card-body dash-empty">
+            <div class="dash-empty-icon">📋</div>
+            <p>
+              No analyses yet.
+              <a href="{{ url_for('predict') }}" class="dash-link"
+                >Make your first prediction →</a
+              >
+            </p>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="card-label">Disease Distribution</div>
+            <span class="dash-badge dash-badge--coming">Coming Soon</span>
+          </div>
+          <div class="dash-card-body dash-empty">
+            <div class="dash-empty-icon">🥧</div>
+            <p>Chart will appear once you have prediction data.</p>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="card-label">Confidence Trends</div>
+            <span class="dash-badge dash-badge--coming">Coming Soon</span>
+          </div>
+          <div class="dash-card-body dash-empty">
+            <div class="dash-empty-icon">📈</div>
+            <p>Track model confidence across predictions over time.</p>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <div class="card-label">Recent Activity</div>
+            <span class="dash-badge dash-badge--coming">Coming Soon</span>
+          </div>
+          <div class="dash-card-body dash-empty">
+            <div class="dash-empty-icon">🕐</div>
+            <p>Recent prediction logs will appear here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div style="text-align: center; margin-top: 3rem">
+        <a
+          href="{{ url_for('predict') }}"
+          class="analyze-btn"
+          style="text-decoration: none; display: inline-flex"
+        >
+          <span class="analyze-text">Go to Prediction →</span>
+        </a>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <span
+        >HealthyHen · Accuracy ·
+        <a href="" target="_blank">Keith @2026</a></span
+      >
+      <span>~90%+ Val Accuracy</span>
+    </footer>
+
+    <!-- Chatbot FAB -->
+    <button class="chat-fab" id="chatFab" title="Ask about poultry diseases">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+        />
+      </svg>
+      <span class="fab-badge">AI</span>
+    </button>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-avatar">🐔</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">HenBot</div>
+          <div class="chat-header-status">Online · Poultry Disease Expert</div>
+        </div>
+        <button class="chat-close" id="chatClose" title="Close">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div style="padding: 0 1rem">
+        <div class="chat-typing" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+      <div class="chat-quick-btns" id="quickBtns">
+        <button class="quick-btn" data-q="What is Coccidiosis?">
+          🔴 Coccidiosis
+        </button>
+        <button class="quick-btn" data-q="Tell me about Newcastle Disease">
+          🟡 Newcastle
+        </button>
+        <button class="quick-btn" data-q="What is Salmonella in chickens?">
+          🟠 Salmonella
+        </button>
+        <button class="quick-btn" data-q="How does a healthy hen look?">
+          🟢 Healthy Hen
+        </button>
+        <button class="quick-btn" data-q="How can I prevent poultry diseases?">
+          💊 Prevention
+        </button>
+      </div>
+      <div class="chat-input-row">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          rows="1"
+          placeholder="Ask about any poultry disease…"
+        ></textarea>
+        <button class="chat-send" id="chatSend" title="Send">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+  </body>
+</html>

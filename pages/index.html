@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HealthyHen — Poultry Disease Classifier</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="bg-noise"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-logo">
+        <span class="logo-icon">🐔</span>
+        <span class="logo-text">HealthyHen</span>
+      </div>
+      <div class="nav-links">
+        <a href="{{ url_for('index') }}" class="nav-link active">Diagnose</a>
+        <a href="{{ url_for('about') }}" class="nav-link">History</a>
+      </div>
+      <div class="nav-badge">.</div>
+    </nav>
+
+    <main class="main-content">
+      <!-- Hero -->
+      <section class="hero">
+        <div class="hero-tag">AI-Powered Poultry Health</div>
+        <h1 class="hero-title">
+          Detect. Diagnose.<br />
+          <span class="accent">Protect.</span>
+        </h1>
+        <p class="hero-sub">
+          Upload a fecal image and our neural network instantly classifies it
+          into Coccidiosis, Newcastle Disease, Salmonella, or Healthy with
+          visual explanation.
+        </p>
+      </section>
+
+      <!-- Upload Zone -->
+      <section class="upload-section">
+        <div class="upload-card" id="dropZone">
+          <div class="upload-inner">
+            <div class="upload-icon-wrap">
+              <div class="upload-icon">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+              </div>
+            </div>
+            <h3 class="upload-title">Drop your image here</h3>
+            <p class="upload-sub">
+              or click to browse — JPG, PNG, WEBP up to 16MB
+            </p>
+            <button class="upload-btn" id="browseBtn">Select Image</button>
+            <input type="file" id="fileInput" accept="image/*" hidden />
+          </div>
+          <div class="preview-state" id="previewState" style="display: none">
+            <img id="previewImg" src="" alt="Preview" class="preview-image" />
+            <div class="preview-overlay">
+              <button class="change-btn" id="changeBtn">Change Image</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn" disabled>
+          <span class="analyze-text">Analyze Image</span>
+          <span class="analyze-loader" id="analyzeLoader" style="display: none">
+            <span class="dot"></span><span class="dot"></span
+            ><span class="dot"></span>
+          </span>
+        </button>
+      </section>
+
+      {% if error %}
+      <div class="error-banner" style="max-width: 580px; margin: 1rem auto 0">
+        ⚠️ {{ error }}
+      </div>
+      {% endif %}
+
+      <!-- ── Results (shown after POST) ── -->
+      <div id="resultsAnchor" style="scroll-margin-top: 80px"></div>
+      {% if prediction %}
+      <section class="results-section" id="resultsSection">
+        <div class="results-grid">
+          <!-- Prediction Card -->
+          <div class="result-card pred-card">
+            <div class="card-label">Diagnosis</div>
+            <div class="pred-badge">
+              <span>🔬</span>
+              <span id="predName" style="color:{{ disease_color }}"
+                >{{ prediction }}</span
+              >
+            </div>
+            <div class="confidence-wrap">
+              <div class="conf-label">Confidence</div>
+              <div class="conf-value" id="confValue">
+                {{ "%.2f"|format(confidence) }}%
+              </div>
+              <div class="conf-bar-bg">
+                <div
+                  class="conf-bar"
+                  id="confBar"
+                  style="width:{{ confidence }}%; background:{{ disease_color }};"
+                ></div>
+              </div>
+            </div>
+            <div class="severity-row">
+              <span class="sev-label">Status:</span>
+              <span class="sev-value" style="color:{{ disease_color }}"
+                >{{ prediction }}</span
+              >
+            </div>
+          </div>
+
+          <!-- Probabilities Card -->
+          <div class="result-card prob-card">
+            <div class="card-label">Class Probabilities</div>
+            <div class="probs-list">
+              {% for cls, pct in probabilities.items() %}
+              <div class="prob-item">
+                <div class="prob-row">
+                  <span class="prob-name">{{ cls }}</span>
+                  <span class="prob-pct" style="color:{{ class_colors[cls] }}"
+                    >{{ "%.2f"|format(pct) }}%</span
+                  >
+                </div>
+                <div class="prob-bar-bg">
+                  <div
+                    class="prob-bar"
+                    style="width:{{ pct }}%; background:{{ class_colors[cls] }};"
+                  ></div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Original Image Card -->
+          <div class="result-card image-card">
+            <div class="card-label">Uploaded Image</div>
+            <img
+              src="{{ '/' + image_path.replace('\\', '/') }}"
+              alt="Uploaded Image"
+              class="result-image"
+              id="resultImg"
+            />
+          </div>
+
+          <!-- Grad-CAM Card -->
+          <div class="result-card gradcam-card">
+            <div class="card-header-row">
+              <div class="card-label">Grad-CAM++ Heatmap</div>
+              <span class="gradcam-badge">XAI</span>
+            </div>
+            <div class="gradcam-loading" id="gradcamLoading">
+              <div class="gcam-spinner"></div>
+              <span>Generating saliency map…</span>
+            </div>
+            <img
+              id="gradcamImg"
+              class="result-image gradcam-img"
+              src=""
+              alt=""
+              style="display: none"
+            />
+            <p class="gradcam-note">
+              Highlighted regions show which pixels most influenced the
+              prediction.
+            </p>
+          </div>
+        </div>
+        <button class="new-btn" id="newBtn">Analyze Another Image</button>
+      </section>
+      {% else %}
+      <section
+        class="results-section"
+        id="resultsSection"
+        style="display: none"
+      ></section>
+      {% endif %}
+    </main>
+
+    <footer class="footer">
+      <span
+        >HealthyHen · Accuracy ·
+        <a href="" target="_blank">Keith @2026</a></span
+      >
+      <span>~90%+ Val Accuracy</span>
+    </footer>
+
+    <!-- Chatbot FAB -->
+    <button class="chat-fab" id="chatFab" title="Ask about poultry diseases">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path
+          d="M20 2H4C2.9 2 2 2.9 2 4v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"
+        />
+      </svg>
+      <span class="fab-badge">AI</span>
+    </button>
+
+    <div class="chat-window" id="chatWindow">
+      <div class="chat-header">
+        <div class="chat-header-avatar">🐔</div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">HenBot</div>
+          <div class="chat-header-status">Online · Poultry Disease Expert</div>
+        </div>
+        <button class="chat-close" id="chatClose" title="Close">✕</button>
+      </div>
+      <div class="chat-messages" id="chatMessages"></div>
+      <div style="padding: 0 1rem">
+        <div class="chat-typing" id="typingIndicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+      <div class="chat-quick-btns" id="quickBtns">
+        <button class="quick-btn" data-q="What is Coccidiosis?">
+          🔴 Coccidiosis
+        </button>
+        <button class="quick-btn" data-q="Tell me about Newcastle Disease">
+          🟡 Newcastle
+        </button>
+        <button class="quick-btn" data-q="What is Salmonella in chickens?">
+          🟠 Salmonella
+        </button>
+        <button class="quick-btn" data-q="How does a healthy hen look?">
+          🟢 Healthy Hen
+        </button>
+        <button class="quick-btn" data-q="How can I prevent poultry diseases?">
+          💊 Prevention
+        </button>
+      </div>
+      <div class="chat-input-row">
+        <textarea
+          class="chat-input"
+          id="chatInput"
+          rows="1"
+          placeholder="Ask about any poultry disease…"
+        ></textarea>
+        <button class="chat-send" id="chatSend" title="Send">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pass Jinja data to JS safely -->
+    <script>
+      window.HH = {
+        hasPrediction: {% if prediction %}true{% else %}false{% endif %},
+        prediction:    {% if prediction %}"{{ prediction }}"{% else %}null{% endif %},
+        confidence:    {% if confidence is defined and confidence is not none %}{{ confidence }}{% else %}null{% endif %},
+        imagePath:     {% if image_path is defined and image_path %}"{{ ('/' + image_path.replace('\\', '/')) }}"{% else %}null{% endif %},
+        imageFilename: {% if image_filename is defined and image_filename %}"{{ image_filename }}"{% else %}null{% endif %},
+        probabilities: {% if probabilities is defined and probabilities %}{{ probabilities|tojson }}{% else %}{}{% endif %},
+      };
+    </script>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+  </body>
+</html>
